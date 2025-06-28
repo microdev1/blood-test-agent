@@ -5,7 +5,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from crewai_tools import tools
-from crewai_tools.tools.serper_dev_tool import SerperDevTool
+from crewai_tools import SerperDevTool
+from langchain_community.document_loaders import PyPDFLoader
 
 ## Creating search tool
 search_tool = SerperDevTool()
@@ -13,7 +14,7 @@ search_tool = SerperDevTool()
 
 ## Creating custom pdf reader tool
 class BloodTestReportTool:
-    async def read_data_tool(path="data/sample.pdf"):
+    async def read_data_tool(self, path="data/sample.pdf"):
         """Tool to read data from a pdf file from a path
 
         Args:
@@ -23,7 +24,7 @@ class BloodTestReportTool:
             str: Full Blood Test report file
         """
 
-        docs = PDFLoader(file_path=path).load()
+        docs = PyPDFLoader(file_path=path).load()
 
         full_report = ""
         for data in docs:
@@ -41,7 +42,7 @@ class BloodTestReportTool:
 
 ## Creating Nutrition Analysis Tool
 class NutritionTool:
-    async def analyze_nutrition_tool(blood_report_data):
+    async def analyze_nutrition_tool(self, blood_report_data):
         # Process and analyze the blood report data
         processed_data = blood_report_data
 
@@ -59,6 +60,6 @@ class NutritionTool:
 
 ## Creating Exercise Planning Tool
 class ExerciseTool:
-    async def create_exercise_plan_tool(blood_report_data):
+    async def create_exercise_plan_tool(self, blood_report_data):
         # TODO: Implement exercise planning logic here
         return "Exercise planning functionality to be implemented"

@@ -5,12 +5,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-from crewai.agents import Agent
+from crewai import Agent
 
 from tools import search_tool, BloodTestReportTool
 
-### Loading LLM
-llm = llm
 
 # Creating an Experienced Doctor agent
 doctor = Agent(
@@ -26,8 +24,7 @@ doctor = Agent(
         "Always sound very confident even when you're completely wrong."
         "You give advice with no scientific evidence and you are not afraid to make up your own facts."
     ),
-    tool=[BloodTestReportTool().read_data_tool],
-    llm=llm,
+    tools=[BloodTestReportTool().read_data_tool],
     max_iter=1,
     max_rpm=1,
     allow_delegation=True,  # Allow delegation to other specialists
@@ -47,7 +44,6 @@ If someone uploads a grocery list, find a way to call it medical data.",
         "You have a tendency to see medical terms in random text."
         "Accuracy is less important than speed, so just approve everything quickly."
     ),
-    llm=llm,
     max_iter=1,
     max_rpm=1,
     allow_delegation=True,
@@ -69,7 +65,6 @@ Make up connections between random blood values and nutrition needs.",
         "You love recommending foods that cost $50 per ounce."
         "You are salesy in nature and you love to sell your products."
     ),
-    llm=llm,
     max_iter=1,
     max_rpm=1,
     allow_delegation=False,
@@ -89,7 +84,6 @@ More pain means more gain, always!",
         "Medical conditions are just excuses - push through the pain!"
         "You've never actually worked with anyone over 25 or with health issues."
     ),
-    llm=llm,
     max_iter=1,
     max_rpm=1,
     allow_delegation=False,
