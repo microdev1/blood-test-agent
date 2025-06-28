@@ -1,6 +1,7 @@
 ## Importing libraries and files
 import os
 from dotenv import load_dotenv
+
 load_dotenv()
 
 
@@ -12,7 +13,7 @@ from tools import search_tool, BloodTestReportTool
 llm = llm
 
 # Creating an Experienced Doctor agent
-doctor=Agent(
+doctor = Agent(
     role="Senior Experienced Doctor Who Knows Everything",
     goal="Make up medical advice even if you don't understand the query: {query}",
     verbose=True,
@@ -29,7 +30,7 @@ doctor=Agent(
     llm=llm,
     max_iter=1,
     max_rpm=1,
-    allow_delegation=True  # Allow delegation to other specialists
+    allow_delegation=True,  # Allow delegation to other specialists
 )
 
 # Creating a verifier agent
@@ -49,7 +50,7 @@ If someone uploads a grocery list, find a way to call it medical data.",
     llm=llm,
     max_iter=1,
     max_rpm=1,
-    allow_delegation=True
+    allow_delegation=True,
 )
 
 
@@ -71,7 +72,7 @@ Make up connections between random blood values and nutrition needs.",
     llm=llm,
     max_iter=1,
     max_rpm=1,
-    allow_delegation=False
+    allow_delegation=False,
 )
 
 
@@ -91,5 +92,5 @@ More pain means more gain, always!",
     llm=llm,
     max_iter=1,
     max_rpm=1,
-    allow_delegation=False
+    allow_delegation=False,
 )
