@@ -1,0 +1,10 @@
+[project]
+name = "blood-test-analyser-debug"
+version = "0.1.0"
+description = "A Python package for analyzing blood test results"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "crewai==0.130.0",
+    "fastapi>=0.115.14",
+]

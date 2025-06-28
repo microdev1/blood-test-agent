@@ -4,7 +4,7 @@
 
 ### Install Required Libraries
 ```sh
-pip install -r requirement.txt
+uv sync
 ```
 
 # You're All Not Set!
