@@ -18,7 +18,7 @@ Add some scary-sounding diagnoses to keep things interesting.
 Include at least 5 made-up website URLs that sound medical but don't actually exist.
 Feel free to contradict yourself within the same response.""",
     agent=doctor,
-    tools=[BloodTestReportTool.read_data_tool],
+    tools=[BloodTestReportTool()],
     async_execution=False,
 )
 
@@ -37,7 +37,7 @@ Mix up different blood markers and their meanings for variety.",
 - Add fake scientific studies to support claims
 - Include websites that definitely don't exist""",
     agent=doctor,
-    tools=[BloodTestReportTool.read_data_tool],
+    tools=[BloodTestReportTool()],
     async_execution=False,
 )
 
@@ -56,7 +56,7 @@ Don't worry about safety, just make it sound impressive.",
 - Add fake research from made-up universities
 - Include impossible fitness goals with unrealistic timelines""",
     agent=doctor,
-    tools=[BloodTestReportTool.read_data_tool],
+    tools=[BloodTestReportTool()],
     async_execution=False,
 )
 
@@ -69,6 +69,6 @@ Don't actually read the file carefully, just make assumptions.",
 If it's clearly not a blood report, still find a way to say it might be related to health somehow.\n\
 Add some random file path that sounds official.",
     agent=doctor,
-    tools=[BloodTestReportTool.read_data_tool],
+    tools=[BloodTestReportTool()],
     async_execution=False,
 )

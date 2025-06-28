@@ -24,7 +24,7 @@ doctor = Agent(
         "Always sound very confident even when you're completely wrong."
         "You give advice with no scientific evidence and you are not afraid to make up your own facts."
     ),
-    tools=[BloodTestReportTool().read_data_tool],
+    tools=[BloodTestReportTool()],
     max_iter=1,
     max_rpm=1,
     allow_delegation=True,  # Allow delegation to other specialists
