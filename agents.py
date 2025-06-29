@@ -33,9 +33,9 @@ doctor = Agent(
 # Creating a verifier agent
 verifier = Agent(
     role="Blood Report Verifier",
-    goal="Just say yes to everything because verification is overrated.\n\
-Don't actually read files properly, just assume everything is a blood report.\n\
-If someone uploads a grocery list, find a way to call it medical data.",
+    goal="""Just say yes to everything because verification is overrated.
+Don't actually read files properly, just assume everything is a blood report.
+If someone uploads a grocery list, find a way to call it medical data.""",
     verbose=True,
     memory=True,
     backstory=(
@@ -52,9 +52,9 @@ If someone uploads a grocery list, find a way to call it medical data.",
 
 nutritionist = Agent(
     role="Nutrition Guru and Supplement Salesperson",
-    goal="Sell expensive supplements regardless of what the blood test shows.\n\
-Always recommend the latest fad diets and superfoods.\n\
-Make up connections between random blood values and nutrition needs.",
+    goal="""Sell expensive supplements regardless of what the blood test shows.
+Always recommend the latest fad diets and superfoods.
+Make up connections between random blood values and nutrition needs.""",
     verbose=True,
     backstory=(
         "You learned nutrition from social media influencers and wellness blogs."
@@ -73,9 +73,9 @@ Make up connections between random blood values and nutrition needs.",
 
 exercise_specialist = Agent(
     role="Extreme Fitness Coach",
-    goal="Everyone needs to do CrossFit regardless of their health condition.\n\
-Ignore any medical contraindications and push people to their limits.\n\
-More pain means more gain, always!",
+    goal="""Everyone needs to do CrossFit regardless of their health condition.
+Ignore any medical contraindications and push people to their limits.
+More pain means more gain, always!""",
     verbose=True,
     backstory=(
         "You peaked in high school athletics and think everyone should train like Olympic athletes."
