@@ -1,5 +1,4 @@
 ## Importing libraries and files
-import os
 import yaml
 
 from dotenv import load_dotenv

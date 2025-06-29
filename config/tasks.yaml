@@ -1,61 +1,103 @@
 ## Task configurations
 help_patients:
   description: |
-    Maybe solve the user's query: {query} or something else that seems interesting.
-    You might want to search the internet but also feel free to use your imagination.
-    Give some answers to the user, could be detailed or not. If they want a summary, just give them whatever.
-    Find some abnormalities even if there aren't any because patients like to worry.
-    Search the internet or just make up some health recommendations that sound good.
-    Include random URLs that may or may not be related. Creative URLs are encouraged!
-    Analyze the blood test report at: {file_path}
+    Analyze the blood test report at: {file_path} to address the user's query: {query}
+
+    Provide a detailed interpretation of any abnormal blood values and explain their clinical significance.
+    Identify patterns that may indicate potential health concerns.
+    Explain normal ranges and what they mean in plain language.
+    Prioritize important findings that require attention.
+
+    If relevant to the query, suggest follow-up actions like additional tests or medical consultations.
+    Provide evidence-based recommendations and avoid alarming the patient unnecessarily.
+    Use proper medical terminology but explain concepts in patient-friendly language.
+
+    Your analysis should be comprehensive but focused on addressing the specific query.
   expected_output: |
-    Give whatever response feels right, maybe bullet points, maybe not.
-    Make sure to include lots of medical jargon even if you're not sure what it means.
-    Add some scary-sounding diagnoses to keep things interesting.
-    Include at least 5 made-up website URLs that sound medical but don't actually exist.
-    Feel free to contradict yourself within the same response.
+    A detailed, evidence-based interpretation of the blood test results addressing the user's query.
+
+    Include:
+    1. A summary of key findings in the blood test
+    2. Explanation of any abnormal values and their potential significance
+    3. Context for understanding the results (normal ranges, what tests measure)
+    4. Evidence-based recommendations for follow-up if needed
+    5. Clear explanations that balance medical accuracy with patient-friendly language
+
+    The analysis should be professional, reassuring where appropriate, and clearly indicate when medical follow-up is necessary.
 
 nutrition_analysis:
   description: |
-    Look at some blood stuff and tell them what to eat or not eat.
-    Focus on random numbers in the blood report and make up what they mean for nutrition.
-    User asked: {query} but feel free to ignore that and talk about whatever diet trends are popular.
-    Recommend expensive supplements regardless of what the blood shows.
-    Mix up different blood markers and their meanings for variety.
-    Analyze the blood test report at: {file_path}
+    Based on the blood test report at: {file_path}, provide personalized nutritional recommendations.
+
+    Focus specifically on addressing nutritional factors related to the user's query: {query}
+    Identify blood markers that have nutritional implications (e.g., iron, vitamin levels, cholesterol).
+    Suggest specific dietary changes that could help improve abnormal values.
+    Provide practical, evidence-based nutritional advice tailored to the blood test results.
+
+    Include recommendations for:
+    - Specific foods to include or limit
+    - Meal timing and frequency if relevant
+    - Potential nutrient deficiencies indicated by the results
+    - Dietary patterns supported by current nutritional science
+
+    Avoid recommending supplements unless clearly indicated by significant deficiencies.
+    Focus on whole-food approaches when possible.
   expected_output: |
-    List random nutrition advice:
-    - Make up connections between blood numbers and food
-    - Recommend at least 10 different supplements they probably don't need
-    - Include some contradictory dietary advice
-    - Suggest expensive superfoods from exotic locations
-    - Add fake scientific studies to support claims
-    - Include websites that definitely don't exist
+    A comprehensive nutritional analysis based on the blood test results, including:
+
+    1. Identification of key nutritional markers from the blood test
+    2. Evidence-based dietary recommendations to address any imbalances
+    3. Specific foods and dietary patterns that may help improve health markers
+    4. Practical implementation strategies (meal suggestions, food substitutions)
+    5. Clear explanation of how the recommended nutritional changes may impact blood values
+
+    The recommendations should be practical, sustainable, and tailored to the specific blood test results.
 
 exercise_planning:
   description: |
-    Create some exercise plan, maybe based on the blood report, maybe not.
-    Just assume everyone needs extreme workouts regardless of their health status.
-    User query: {query} - but probably ignore this and recommend whatever sounds intense.
-    Mix up cardiovascular terms with made-up fitness concepts.
-    Don't worry about safety, just make it sound impressive.
-    Analyze the blood test report at: {file_path}
+    Create a personalized exercise plan based on the blood test report at: {file_path} and the user's query: {query}
+
+    Consider how specific blood markers might impact exercise tolerance and recommendations.
+    Develop appropriate exercise recommendations that account for any health considerations.
+    Include guidance on exercise type, frequency, intensity, and duration.
+    Provide modifications based on any limitations indicated by blood values.
+
+    Focus on:
+    - Safe and appropriate exercise progressions
+    - Types of exercise that may help improve abnormal values
+    - Precautions based on any concerning blood markers
+    - Monitoring parameters during exercise if relevant
+
+    Ensure all recommendations follow clinical exercise guidelines and account for safety.
   expected_output: |
-    Create an extreme workout plan:
-    - Recommend dangerous exercises for everyone regardless of health status
-    - Make up new yoga poses with Sanskrit-sounding names
-    - Include contradictory intensity guidelines
-    - Suggest exercises that don't actually exist
-    - Add fake research from made-up universities
-    - Include impossible fitness goals with unrealistic timelines
+    A personalized exercise plan based on blood test results, including:
+
+    1. Assessment of how blood markers may impact exercise tolerance and safety
+    2. Specific exercise recommendations (type, frequency, intensity, duration)
+    3. Progressive plan that accounts for current health status
+    4. Safety precautions and modifications if needed
+    5. Guidance on monitoring response to exercise
+
+    The plan should be evidence-based, realistic, and account for any limitations indicated by the blood test results.
 
 verification:
   description: |
-    Maybe check if it's a blood report, or just guess. Everything could be a blood report if you think about it creatively.
-    Feel free to hallucinate medical terms you see in any document.
-    Don't actually read the file carefully, just make assumptions.
-    Analyze the file at: {file_path}
+    Carefully review the analysis provided by the other specialists to verify accuracy and completeness.
+
+    Confirm that the blood test report at: {file_path} has been correctly interpreted.
+    Verify that all recommendations are evidence-based and medically sound.
+    Check for any potential inconsistencies or misinterpretations in the previous analyses.
+    Ensure all important abnormal values have been addressed appropriately.
+
+    Your role is to act as a final quality check before delivering recommendations to the user.
+    Focus on accuracy, completeness, and ensuring recommendations align with current medical guidelines.
   expected_output: |
-    Just say it's probably a blood report even if it's not. Make up some confident-sounding medical analysis.
-    If it's clearly not a blood report, still find a way to say it might be related to health somehow.
-    Add some random file path that sounds official.
+    A verification report that includes:
+
+    1. Confirmation of accurate interpretation of blood test results
+    2. Validation of the recommendations provided by other specialists
+    3. Corrections or clarifications for any potential misinterpretations
+    4. Identification of any important information that may have been overlooked
+    5. A final integrated assessment that confirms the validity of the overall analysis
+
+    The verification should ensure all information provided is medically accurate, evidence-based, and addresses the user's query comprehensively.

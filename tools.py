@@ -1,11 +1,10 @@
 ## Importing libraries and files
 import os
-import asyncio
 import yaml
+import asyncio
 
 from crewai.tools import BaseTool
 
-from crewai_tools import tools
 from crewai_tools import SerperDevTool
 
 from langchain_community.document_loaders import PyPDFLoader
@@ -48,21 +47,27 @@ class BloodTestReportTool(BaseTool):
         Returns:
             str: Full Blood Test report file
         """
+        try:
+            # Check if file exists
+            if not os.path.exists(path):
+                return f"Error: File not found at {path}"
 
-        docs = PyPDFLoader(file_path=path).load()
+            docs = PyPDFLoader(file_path=path).load()
 
-        full_report = ""
-        for data in docs:
-            # Clean and format the report data
-            content = data.page_content
+            full_report = ""
+            for data in docs:
+                # Clean and format the report data
+                content = data.page_content
 
-            # Remove extra whitespaces and format properly
-            while "\n\n" in content:
-                content = content.replace("\n\n", "\n")
+                # Remove extra whitespaces and format properly
+                while "\n\n" in content:
+                    content = content.replace("\n\n", "\n")
 
-            full_report += content + "\n"
+                full_report += content + "\n"
 
-        return full_report
+            return full_report
+        except Exception as e:
+            return f"Error reading PDF file: {str(e)}"
 
 
 ## Base Analysis Tool - Parent class for analysis tools with common functionality
@@ -84,22 +89,49 @@ class BaseAnalysisTool(BaseTool):
         return asyncio.run(self.analyze_data(blood_report_data))
 
     async def analyze_data(self, blood_report_data):
-        # Clean the data (common functionality)
-        processed_data = self._clean_data(blood_report_data)
+        """Analyze blood report data and provide specific recommendations
 
-        # Analyze data - to be implemented by child classes
-        analysis_results = self._analyze_specific_data(processed_data)
+        Args:
+            blood_report_data (str): The blood report data to analyze
 
-        # Format response (common functionality)
-        response = self._format_response(analysis_results)
+        Returns:
+            str: Formatted analysis results
+        """
+        try:
+            # Handle empty or invalid data
+            if not blood_report_data or len(blood_report_data.strip()) < 10:
+                return f"{self.header}\n\nError: Insufficient data in blood report. Please ensure a valid blood test report was provided.\n\n{self.general_guidance}"
 
-        return response
+            # Clean the data (common functionality)
+            processed_data = self._clean_data(blood_report_data)
+
+            # Analyze data - to be implemented by child classes
+            analysis_results = self._analyze_specific_data(processed_data)
+
+            # Format response (common functionality)
+            response = self._format_response(analysis_results)
+
+            return response
+        except Exception as e:
+            return f"{self.header}\n\nError analyzing data: {str(e)}\n\n{self.general_guidance}"
 
     def _clean_data(self, data):
-        """Common data cleaning functionality"""
+        """Common data cleaning functionality
+
+        Args:
+            data (str): The raw blood report data
+
+        Returns:
+            str: Cleaned and processed data
+        """
         # Clean up the data format
         processed_data = data
         processed_data = processed_data.replace("  ", " ").strip()
+
+        # Convert to lowercase for easier searching
+        processed_data_lower = processed_data.lower()
+
+        # Return both the original cleaned data and lowercase version
         return processed_data
 
     def _analyze_specific_data(self, processed_data):
