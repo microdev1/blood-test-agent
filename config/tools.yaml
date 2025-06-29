@@ -1,0 +1,44 @@
+## Tool configurations
+blood_test_report_tool:
+  name: "Blood Test Report Tool"
+  description: "Tool to read data from a pdf file from a path"
+  default_file_path: "data/sample.pdf"
+  format_response:
+    general_guidance: |
+      - Focus on whole foods and minimize processed foods
+      - Ensure adequate protein intake for cellular repair
+      - Stay hydrated with adequate water consumption
+      - Consider consultation with a registered dietitian for personalized advice
+
+nutrition_tool:
+  name: "Nutrition Analysis Tool"
+  description: "Tool to analyze nutrition based on blood report data"
+  header: "NUTRITION ANALYSIS RECOMMENDATIONS:"
+  default_indicators:
+    cholesterol: "Monitor saturated fat intake"
+    glucose: "Consider low glycemic index foods"
+    iron: "Consider iron-rich foods like leafy greens and lean meats"
+    vitamins: "Ensure adequate intake of fresh fruits and vegetables"
+  default_recommendation: "Based on general blood health principles, focus on whole foods, balanced macronutrients, and adequate hydration"
+  general_guidance: |
+    - Focus on whole foods and minimize processed foods
+    - Ensure adequate protein intake for cellular repair
+    - Stay hydrated with adequate water consumption
+    - Consider consultation with a registered dietitian for personalized advice
+
+exercise_tool:
+  name: "Exercise Planning Tool"
+  description: "Tool to create an exercise plan based on blood report data"
+  header: "EXERCISE RECOMMENDATIONS BASED ON BLOOD ANALYSIS:"
+  default_indicators:
+    cardiovascular: "Regular aerobic exercise 3-5 times per week"
+    metabolic: "Mix of cardio and resistance training to improve insulin sensitivity"
+    blood_pressure: "Moderate intensity exercise with proper warm-up and cool-down"
+    bone_health: "Weight-bearing exercises to support bone density"
+  default_recommendation: "Based on general health principles, a balanced exercise program including cardio, strength, and flexibility training"
+  general_guidance: |
+    - Begin with proper warm-up to prevent injury
+    - Start slowly and gradually increase intensity
+    - Include both cardiovascular and strength training
+    - Consider working with a certified fitness professional
+    - Always consult healthcare provider before beginning new exercise program

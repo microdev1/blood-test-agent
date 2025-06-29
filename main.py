@@ -6,8 +6,8 @@ from fastapi import FastAPI, File, UploadFile, Form, HTTPException
 
 from crewai import Crew, Process
 from agents import doctor, verifier, nutritionist, exercise_specialist
-from task import help_patients, nutrition_analysis, exercise_planning, verification
-from tools import BloodTestReportTool
+from tasks import help_patients, nutrition_analysis, exercise_planning, verification
+from tools import BloodTestReportTool, NutritionTool, ExerciseTool, search_tool
 
 app = FastAPI(title="Blood Test Report Analyser")
 
@@ -16,9 +16,14 @@ def run_crew(query: str, file_path: str = "data/sample.pdf"):
     """To run the whole crew"""
     # Create a BloodTestReportTool with the specified file path
     blood_test_tool = BloodTestReportTool(file_path=file_path)
+    nutrition_tool = NutritionTool()
+    exercise_tool = ExerciseTool()
 
-    # Update doctor's tools
-    doctor.tools = [blood_test_tool]
+    # Update agent tools
+    doctor.tools = [blood_test_tool, search_tool]
+    verifier.tools = [blood_test_tool, search_tool]
+    nutritionist.tools = [blood_test_tool, nutrition_tool, search_tool]
+    exercise_specialist.tools = [blood_test_tool, exercise_tool, search_tool]
 
     medical_crew = Crew(
         agents=[doctor, verifier, nutritionist, exercise_specialist],
