@@ -3,6 +3,7 @@ Database models for the Blood Test Analyser application.
 """
 
 from datetime import datetime
+
 from sqlalchemy import Column, Integer, String, DateTime, Text, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker

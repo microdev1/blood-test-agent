@@ -4,10 +4,11 @@ Analysis module that contains the run_crew function to avoid circular imports.
 
 import os
 import json
+
+from agents import doctor, verifier, nutritionist, exercise_specialist
+from crewai import Crew, Process
 from datetime import datetime
 
-from crewai import Crew, Process
-from agents import doctor, verifier, nutritionist, exercise_specialist
 from tasks import help_patients, nutrition_analysis, exercise_planning, verification
 from tools import BloodTestReportTool, NutritionTool, ExerciseTool, search_tool
 

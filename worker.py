@@ -3,15 +3,13 @@ Worker module for processing blood test analyses in the background.
 """
 
 import os
-import json
 import multiprocessing
-from datetime import datetime
+
 from redis import Redis
 from rq import Worker, Queue
-from sqlalchemy.orm import Session
 
-from database import get_engine, get_session_factory, Analysis
 from analysis import run_crew  # Import the analysis function from analysis module
+from database import get_engine, get_session_factory, Analysis
 
 # Initialize database session
 engine = get_engine()
