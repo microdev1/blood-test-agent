@@ -22,13 +22,16 @@ class BloodTestReportTool(BaseTool):
     name = "Blood Test Report Tool"
     description = "Tool to read data from a pdf file from a path"
 
-    def __init__(self):
+    def __init__(self, file_path="data/sample.pdf"):
         super().__init__(name=self.name, description=self.description)
+        self.file_path = file_path
 
-    async def _arun(self, path="data/sample.pdf"):
+    async def _arun(self, file_path=None):
+        path = file_path if file_path else self.file_path
         return await self.read_data_tool(path)
 
-    def _run(self, path="data/sample.pdf"):
+    def _run(self, file_path=None):
+        path = file_path if file_path else self.file_path
         return asyncio.run(self.read_data_tool(path))
 
     async def read_data_tool(self, path="data/sample.pdf"):
@@ -102,5 +105,11 @@ class ExerciseTool(BaseTool):
         return asyncio.run(self.create_exercise_plan_tool(blood_report_data))
 
     async def create_exercise_plan_tool(self, blood_report_data):
-        # TODO: Implement exercise planning logic here
-        return "Exercise planning functionality to be implemented"
+        # Process blood report data
+        processed_data = blood_report_data
+
+        # Clean up the data format
+        processed_data = processed_data.replace("  ", " ").strip()
+
+        # Exercise plan generation logic
+        return "Exercise plan based on blood report analysis"

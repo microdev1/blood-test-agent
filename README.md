@@ -1,18 +1,55 @@
-# Project Setup and Execution Guide
+# Blood Test Report Analyzer
 
-## Getting Started
+A FastAPI application that analyzes blood test reports using AI agents.
 
-### Install Required Libraries
+## Project Setup
+
+### Prerequisites
+- Python 3.13+
+- uv package manager
+
+### Installation
+
+1. Clone this repository
+2. Install dependencies:
 ```sh
 uv sync
 ```
 
-# You're All Not Set!
-🐛 **Debug Mode Activated!** The project has bugs waiting to be squashed - your mission is to fix them and bring it to life.
+## Running the Application
 
-## Debugging Instructions
+Start the FastAPI server:
+```sh
+python main.py
+```
 
-1. **Identify the Bug**: Carefully read the code and understand the expected behavior.
-2. **Fix the Bug**: Implement the necessary changes to fix the bug.
-3. **Test the Fix**: Run the project and verify that the bug is resolved.
-4. **Repeat**: Continue this process until all bugs are fixed.
+This will launch the application on `http://0.0.0.0:8000`
+
+### API Endpoints
+
+- **GET /** - Health check endpoint
+- **POST /analyze** - Upload a blood test report PDF for analysis
+  - Parameters:
+    - `file`: The PDF file (required)
+    - `query`: Analysis query (optional, defaults to "Summarise my Blood Test Report")
+
+## Using the API
+
+### Via Swagger UI
+Access the Swagger UI at `http://0.0.0.0:8000/docs` to interact with the API.
+
+### Via curl
+```sh
+curl -X POST http://0.0.0.0:8000/analyze \
+  -F "file=@path/to/your/blood_test.pdf" \
+  -F "query=Analyze my blood sugar levels"
+```
+
+## Project Structure
+
+- `main.py` - FastAPI application and entry point
+- `agents.py` - AI agent definitions
+- `task.py` - Task definitions for the agents
+- `tools.py` - Custom tools for the agents
+- `data/` - Directory for storing uploaded blood test reports
+- `outputs/` - Directory for analysis outputs

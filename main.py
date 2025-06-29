@@ -1,24 +1,32 @@
-from fastapi import FastAPI, File, UploadFile, Form, HTTPException
 import os
 import uuid
 import asyncio
 
+from fastapi import FastAPI, File, UploadFile, Form, HTTPException
+
 from crewai import Crew, Process
-from agents import doctor
-from task import help_patients
+from agents import doctor, verifier, nutritionist, exercise_specialist
+from task import help_patients, nutrition_analysis, exercise_planning, verification
+from tools import BloodTestReportTool
 
 app = FastAPI(title="Blood Test Report Analyser")
 
 
 def run_crew(query: str, file_path: str = "data/sample.pdf"):
     """To run the whole crew"""
+    # Create a BloodTestReportTool with the specified file path
+    blood_test_tool = BloodTestReportTool(file_path=file_path)
+
+    # Update doctor's tools
+    doctor.tools = [blood_test_tool]
+
     medical_crew = Crew(
-        agents=[doctor],
-        tasks=[help_patients],
+        agents=[doctor, verifier, nutritionist, exercise_specialist],
+        tasks=[help_patients, nutrition_analysis, exercise_planning, verification],
         process=Process.sequential,
     )
 
-    result = medical_crew.kickoff({"query": query})
+    result = medical_crew.kickoff({"query": query, "file_path": file_path})
     return result
 
 
