@@ -5,25 +5,53 @@ import asyncio
 
 from datetime import datetime
 
-from fastapi import FastAPI, File, UploadFile, Form, HTTPException, BackgroundTasks
+from fastapi import (
+    FastAPI,
+    File,
+    UploadFile,
+    Form,
+    HTTPException,
+    BackgroundTasks,
+    Depends,
+)
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from redis import Redis
+from rq import Queue
+from sqlalchemy.orm import Session
 
-from crewai import Crew, Process
-from agents import doctor, verifier, nutritionist, exercise_specialist
-from tasks import help_patients, nutrition_analysis, exercise_planning, verification
-from tools import BloodTestReportTool, NutritionTool, ExerciseTool, search_tool
+from analysis import run_crew  # Import run_crew from analysis.py
+from database import init_db, get_engine, get_session_factory, Analysis
+from worker import process_analysis
+
+# Initialize database
+engine = init_db()
+SessionLocal = get_session_factory(engine)
+
+# Initialize Redis Queue
+redis_conn = Redis.from_url(os.getenv("REDIS_URL", "redis://localhost:6379"))
+analysis_queue = Queue("blood_test_analyses", connection=redis_conn)
 
 app = FastAPI(title="Blood Test Report Analyser")
 
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods
-    allow_headers=["*"],  # Allows all headers
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
+
+
+# Database dependency
+def get_db():
+    """Get database session"""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
 # Error handling middleware
@@ -47,90 +75,6 @@ async def error_handling_middleware(request, call_next):
         )
 
 
-def run_crew(query: str, file_path: str = "data/sample.pdf"):
-    """To run the whole crew
-
-    Args:
-        query (str): The user's query about their blood test
-        file_path (str): Path to the blood test report PDF
-
-    Returns:
-        str: The analysis result from the crew
-    """
-    try:
-        # Ensure file exists
-        if not os.path.exists(file_path):
-            return f"Error: Blood test report not found at {file_path}"
-
-        # Create a BloodTestReportTool with the specified file path
-        blood_test_tool = BloodTestReportTool(file_path=file_path)
-        nutrition_tool = NutritionTool()
-        exercise_tool = ExerciseTool()
-
-        # Update agent tools
-        doctor.tools = [blood_test_tool, search_tool]
-        verifier.tools = [blood_test_tool, search_tool]
-        nutritionist.tools = [blood_test_tool, nutrition_tool, search_tool]
-        exercise_specialist.tools = [blood_test_tool, exercise_tool, search_tool]
-
-        medical_crew = Crew(
-            agents=[doctor, verifier, nutritionist, exercise_specialist],
-            tasks=[help_patients, nutrition_analysis, exercise_planning, verification],
-            process=Process.sequential,
-            verbose=True,
-        )
-
-        result = medical_crew.kickoff({"query": query, "file_path": file_path})
-
-        # Save the result to outputs directory
-        save_analysis_result(result, query, file_path)
-
-        return result
-    except Exception as e:
-        error_message = f"Error running crew analysis: {str(e)}"
-        print(error_message)
-        return error_message
-
-
-def save_analysis_result(result, query: str, file_path: str):
-    """Save analysis results to the outputs directory
-
-    Args:
-        result: The analysis result from CrewOutput
-        query (str): The user query
-        file_path (str): Path to the analyzed blood test report
-    """
-    try:
-        # Ensure outputs directory exists
-        os.makedirs("outputs", exist_ok=True)
-
-        # Create a timestamp for the filename
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-
-        # Create a unique filename based on the original filename
-        base_filename = os.path.basename(file_path)
-        filename_no_ext = os.path.splitext(base_filename)[0]
-
-        # Create output file path
-        output_path = f"outputs/{filename_no_ext}_{timestamp}.json"
-
-        # Create output data
-        output_data = {
-            "query": query,
-            "file_analyzed": file_path,
-            "analysis_date": datetime.now().isoformat(),
-            "analysis_result": str(result),
-        }
-
-        # Write to file
-        with open(output_path, "w") as f:
-            json.dump(output_data, f, indent=2)
-
-        print(f"Analysis result saved to {output_path}")
-    except Exception as e:
-        print(f"Error saving analysis result: {str(e)}")
-
-
 @app.get("/")
 async def root():
     """Health check endpoint"""
@@ -142,6 +86,7 @@ async def analyze_blood_report(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     query: str = Form(default="Summarise my Blood Test Report"),
+    db: Session = Depends(get_db),
 ):
     """Analyze blood test report and provide comprehensive health recommendations
 
@@ -149,6 +94,7 @@ async def analyze_blood_report(
         background_tasks: FastAPI background tasks
         file: The uploaded blood test report PDF file
         query: The user's specific query about their blood test
+        db: Database session
 
     Returns:
         JSON response with analysis results
@@ -160,7 +106,8 @@ async def analyze_blood_report(
             status_code=400, detail="Invalid file format. Only PDF files are supported."
         )
 
-    # Generate unique filename to avoid conflicts
+    # Generate unique IDs
+    analysis_id = str(uuid.uuid4())
     file_id = str(uuid.uuid4())
     file_path = f"data/blood_test_report_{file_id}.pdf"
 
@@ -182,16 +129,33 @@ async def analyze_blood_report(
         if query == "" or query is None:
             query = "Summarise my Blood Test Report"
 
-        # Process the blood report with all specialists
-        response = run_crew(query=query.strip(), file_path=file_path)
+        # Create a database record for this analysis
+        new_analysis = Analysis(
+            analysis_id=analysis_id,
+            query=query,
+            file_analyzed=file.filename,
+            analysis_date=datetime.now(),
+            status="pending",
+            analysis_result="Processing...",
+        )
 
-        # Schedule file cleanup as a background task
-        background_tasks.add_task(cleanup_file, file_path)
+        db.add(new_analysis)
+        db.commit()
+
+        # Queue the analysis task
+        job = analysis_queue.enqueue(
+            process_analysis,
+            analysis_id=analysis_id,
+            query=query.strip(),
+            file_path=file_path,
+            job_timeout="1h",  # Allow up to 1 hour for processing
+        )
 
         return {
-            "status": "success",
+            "status": "processing",
+            "message": "Your blood test report is being analyzed",
+            "analysis_id": analysis_id,
             "query": query,
-            "analysis": str(response),
             "file_processed": file.filename,
             "timestamp": datetime.now().isoformat(),
         }
@@ -213,38 +177,27 @@ async def analyze_blood_report(
 
 
 @app.get("/analyses")
-async def get_analyses():
-    """Get a list of past blood test analyses
+async def get_analyses(db: Session = Depends(get_db)):
+    """Get a list of all blood test analyses
 
     Returns:
         List of analysis metadata
     """
     try:
-        # Ensure outputs directory exists
-        if not os.path.exists("outputs"):
-            return {"analyses": []}
+        # Query all analyses from database
+        db_analyses = db.query(Analysis).order_by(Analysis.analysis_date.desc()).all()
 
-        analyses = []
-        for filename in os.listdir("outputs"):
-            if filename.endswith(".json"):
-                file_path = os.path.join("outputs", filename)
-                try:
-                    with open(file_path, "r") as f:
-                        data = json.load(f)
-                        analyses.append(
-                            {
-                                "id": os.path.splitext(filename)[0],
-                                "query": data.get("query", "Unknown"),
-                                "file_analyzed": data.get("file_analyzed", "Unknown"),
-                                "analysis_date": data.get("analysis_date", "Unknown"),
-                            }
-                        )
-                except:
-                    # Skip corrupted files
-                    continue
-
-        # Sort by date, newest first
-        analyses.sort(key=lambda x: x["analysis_date"], reverse=True)
+        # Convert to response format
+        analyses = [
+            {
+                "id": analysis.analysis_id,
+                "query": analysis.query,
+                "file_analyzed": analysis.file_analyzed,
+                "analysis_date": analysis.analysis_date.isoformat(),
+                "status": analysis.status,
+            }
+            for analysis in db_analyses
+        ]
 
         return {"analyses": analyses}
     except Exception as e:
@@ -254,27 +207,36 @@ async def get_analyses():
 
 
 @app.get("/analyses/{analysis_id}")
-async def get_analysis(analysis_id: str):
+async def get_analysis(analysis_id: str, db: Session = Depends(get_db)):
     """Get a specific analysis by ID
 
     Args:
         analysis_id: The ID of the analysis to retrieve
+        db: Database session
 
     Returns:
         The full analysis data
     """
     try:
-        file_path = f"outputs/{analysis_id}.json"
+        # Query the analysis from database
+        analysis = (
+            db.query(Analysis).filter(Analysis.analysis_id == analysis_id).first()
+        )
 
-        if not os.path.exists(file_path):
+        if not analysis:
             raise HTTPException(
                 status_code=404, detail=f"Analysis with ID {analysis_id} not found"
             )
 
-        with open(file_path, "r") as f:
-            data = json.load(f)
-
-        return data
+        # Return the analysis data
+        return {
+            "analysis_id": analysis.analysis_id,
+            "query": analysis.query,
+            "file_analyzed": analysis.file_analyzed,
+            "analysis_date": analysis.analysis_date.isoformat(),
+            "analysis_result": analysis.analysis_result,
+            "status": analysis.status,
+        }
     except HTTPException as e:
         # Re-raise HTTP exceptions
         raise e
@@ -285,24 +247,36 @@ async def get_analysis(analysis_id: str):
 
 
 @app.delete("/analyses/{analysis_id}")
-async def delete_analysis(analysis_id: str):
+async def delete_analysis(analysis_id: str, db: Session = Depends(get_db)):
     """Delete a specific analysis by ID
 
     Args:
         analysis_id: The ID of the analysis to delete
+        db: Database session
 
     Returns:
         Success message
     """
     try:
-        file_path = f"outputs/{analysis_id}.json"
+        # Query the analysis
+        analysis = (
+            db.query(Analysis).filter(Analysis.analysis_id == analysis_id).first()
+        )
 
-        if not os.path.exists(file_path):
+        if not analysis:
             raise HTTPException(
                 status_code=404, detail=f"Analysis with ID {analysis_id} not found"
             )
 
-        os.remove(file_path)
+        # Delete from database
+        db.delete(analysis)
+        db.commit()
+
+        # Cancel job if still in queue
+        job = analysis_queue.fetch_job(analysis_id)
+        if job:
+            job.cancel()
+            job.delete()
 
         return {
             "status": "success",
@@ -330,6 +304,54 @@ async def health_check():
         "version": "0.1.0",
         "timestamp": datetime.now().isoformat(),
     }
+
+
+@app.get("/analyses/status/{analysis_id}")
+async def get_analysis_status(analysis_id: str, db: Session = Depends(get_db)):
+    """Get the status of a specific analysis by ID
+
+    Args:
+        analysis_id: The ID of the analysis to check
+        db: Database session
+
+    Returns:
+        Status of the analysis
+    """
+    try:
+        # Check if analysis exists in database
+        analysis = (
+            db.query(Analysis).filter(Analysis.analysis_id == analysis_id).first()
+        )
+
+        if not analysis:
+            raise HTTPException(
+                status_code=404, detail=f"Analysis with ID {analysis_id} not found"
+            )
+
+        # Get job from Redis if it's still in the queue
+        job = analysis_queue.fetch_job(analysis_id)
+
+        # Return status information
+        return {
+            "analysis_id": analysis_id,
+            "status": analysis.status,
+            "query": analysis.query,
+            "file_analyzed": analysis.file_analyzed,
+            "analysis_date": analysis.analysis_date.isoformat(),
+            "queue_position": job.get_position() if job else None,
+            "is_finished": (
+                job.is_finished if job else (analysis.status in ["completed", "failed"])
+            ),
+            "is_failed": job.is_failed if job else (analysis.status == "failed"),
+        }
+
+    except HTTPException as e:
+        # Re-raise HTTP exceptions
+        raise e
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Error retrieving analysis status: {str(e)}"
+        )
 
 
 async def cleanup_file(file_path: str):

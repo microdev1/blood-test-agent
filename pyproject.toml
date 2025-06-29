@@ -1,10 +1,19 @@
 [project]
-name = "blood-test-analyser-debug"
+name = "blood-test-analyser"
 version = "0.1.0"
-description = "A Python package for analyzing blood test results"
+description = "Analyzing blood test results"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "crewai[tools]==0.130.0",
     "fastapi>=0.115.14",
+    "redis>=6.2.0",
+    "rq>=2.4.0",
 ]
+
+[project.scripts]
+blood-test-analyser = "main:app"
+start-workers = "worker:main"
+
+[tool.poetry.dependencies]
+uvicorn = { extras = ["standard"], version = "^0.27.0" }
